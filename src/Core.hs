@@ -1,20 +1,23 @@
 module Core where
 
+import qualified Reader
+import Types
+
 -- aux
-rep :: a -> a
-rep line = lispPrint $ eval (lispRead line) ""
+rep :: String -> IO String
+rep line = heartRead line >>= \ast -> return $ heartPrint (eval ast mempty)
 
 -- read
-lispRead :: a -> a
-lispRead str = str
+heartRead :: String -> IO HeartVal
+heartRead str = Reader.readStr str
 
 -- eval
-eval :: a -> b -> a
+eval :: a -> String -> a
 eval ast env = ast
 
 -- print
-lispPrint :: a -> a
-lispPrint exp = exp
+heartPrint :: HeartVal -> String
+heartPrint exp = show exp
 
 -- loop
 loop = do
@@ -23,7 +26,8 @@ loop = do
     case line of
         "" -> return ()
         str -> do
-          putStrLn $ rep str
+          x <- rep str
+          putStrLn $ x
           loop
 
 main = do
