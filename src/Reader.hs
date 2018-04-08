@@ -23,13 +23,15 @@ comment = do
     skipMany (noneOf "\r\n")
 
 
-readList2 :: Parser HeartVal
-readList2 = do
+readHList :: Parser HeartVal
+readHList = do
     char '<'
     x <- sepEndBy readForm ignored
     char '3'
     return $ HeartList x Nil
 
+symbol :: Parser Char
+symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 
 readAtom :: Parser HeartVal
 readAtom = readString
@@ -75,11 +77,11 @@ escaped = do
 readForm :: Parser HeartVal
 readForm =  do
     ignored
-    x <- readList2
+    x <- readHList
       <|> readAtom
     return $ x
 
-readStr :: String -> IO HeartVal
+readStr :: String -> Either HeartError HeartVal
 readStr str = case parse readForm mempty str of
-    Left err -> return Nil
-    Right val -> return val
+    Left err -> Left $ HeartError $ show err
+    Right val -> Right $ val

@@ -3,12 +3,8 @@ module Core where
 import qualified Reader
 import Types
 
--- aux
-rep :: String -> IO String
-rep line = heartRead line >>= \ast -> return $ heartPrint (eval ast mempty)
-
 -- read
-heartRead :: String -> IO HeartVal
+heartRead :: String -> Either HeartError HeartVal
 heartRead str = Reader.readStr str
 
 -- eval
@@ -18,6 +14,8 @@ eval ast env = ast
 -- print
 heartPrint :: HeartVal -> String
 heartPrint exp = show exp
+errorPrint :: HeartError -> String
+errorPrint (HeartError e) = "### ERROR ###\n" ++ e ++ "\n"
 
 -- loop
 loop = do
@@ -26,8 +24,11 @@ loop = do
     case line of
         "" -> return ()
         str -> do
-          x <- rep str
-          putStrLn $ x
+          res <- return $ Reader.readStr str
+          out <- case res of
+            Left err -> return $ errorPrint err
+            Right val -> return $ heartPrint val
+          putStrLn out
           loop
 
 main = do
